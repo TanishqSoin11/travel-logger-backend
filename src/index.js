@@ -1,50 +1,42 @@
-const express = require("express");
-const morgan = require("morgan");
-const helmet = require("helmet");
-const cors = require("cors");
-const mongoose = require("mongoose");
+const express = require('express');
+const morgan = require('morgan');
+const helmet = require('helmet');
+const cors = require('cors');
+const mongoose = require('mongoose');
 
-require("dotenv").config();
-const middlewares = require("./middlewares");
-const logs = require("./api/logs");
+require('dotenv').config();
 
-// App config
+const middlewares = require('./middlewares');
+const logs = require('./api/logs');
+
 const app = express();
-mongoose.connect(
-  process.env.DATABASE_URL,
-  {
-    useNewUrlParser: true,
-    useCreateIndex: true,
-    useUnifiedTopology: true,
-  },
-  () => console.log("Connected to DB"),
-);
 
-const port = process.env.PORT || 1337;
+app.enable('trust proxy'); // needed for rate limiting by Client IP
 
-// Middlewares
-app.use(morgan("common"));
+mongoose.connect(process.env.DATABASE_URL, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+app.use(morgan('common'));
 app.use(helmet());
-app.use(
-  cors({
-    origin: process.env.CORS_ORIGIN,
-  }),
-);
+app.use(cors({
+  origin: process.env.CORS_ORIGIN,
+}));
 app.use(express.json());
 
-// Routes
-app.get("/", (req, res) => {
+app.get('/', (req, res) => {
   res.json({
-    message: "Hello world",
+    message: 'Hello World!',
   });
 });
 
-app.use("/api/logs", logs);
+app.use('/api/logs', logs);
 
 app.use(middlewares.notFound);
 app.use(middlewares.errorHandler);
 
-// Listener
+const port = process.env.PORT || 1337;
 app.listen(port, () => {
-  console.log(`listening on port ${port}`);
+  console.log(`Listening at http://localhost:${port}`);
 });
